@@ -8,9 +8,9 @@ import com.nagarro.employeelisting.services.CsvService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
@@ -48,13 +48,29 @@ public class EmployeeController {
         catch (Exception e) {}
     }
 
-    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    public List<Employee> getEmployees() {
+
+        writeToFile();
+
+        try {
+            List<Employee> employees = mapper.readValue(jsonFile, List.class);
+            return employees;
+        }
+        catch (Exception e) {
+            List<Employee> employees = new ArrayList<>();
+            return employees;
+        }
+
+    }
+
+    @GetMapping(value = "/login")
     public String login() {
         return "login";
     }
 
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    @PostMapping(value = "/login")
     public String validate(Map<String, Object> model, @RequestParam String userName, @RequestParam String password) {
+
         try {
             restTemplate.getForEntity(
                             "http://localhost:9090/login/" + userName + "/" + password,
@@ -65,64 +81,29 @@ public class EmployeeController {
             return "login";
         }
 
-        writeToFile();
-
-        try {
-            List<Employee> employees = mapper.readValue(jsonFile, List.class);
-            model.put("employees", employees);
-        }
-        catch (Exception e) {
-            List<Employee> employees = new ArrayList<>();
-            model.put("employees", employees);
-        }
-
+        List<Employee> employees = getEmployees();
+        model.put("employees", employees);
         this.userName = userName;
         model.put("user", userName);
 
         return "employees";
     }
 
-    @RequestMapping(value = "/employees", method = RequestMethod.GET)
-    public String employees(Map<String, Object> model) {
-
-        writeToFile();
-
-        try {
-            List<Employee> employees = mapper.readValue(jsonFile, List.class);
-            model.put("employees", employees);
-        }
-        catch (Exception e) {
-            List<Employee> employees = new ArrayList<>();
-            model.put("employees", employees);
-        }
-
-        model.put("user", userName);
-        return "employees";
-    }
-
-    @RequestMapping(value = "/delete/{employeeCode}", method = RequestMethod.GET)
+    @GetMapping(value = "/delete/{employeeCode}")
     public String delete(Map<String, Object> model, @PathVariable Integer employeeCode) {
 
         restTemplate.getForEntity(
                 "http://localhost:9090/delete/" + employeeCode,
                 String.class);
 
-        writeToFile();
-
-        try {
-            List<Employee> employees = mapper.readValue(jsonFile, List.class);
-            model.put("employees", employees);
-        }
-        catch (Exception e) {
-            List<Employee> employees = new ArrayList<>();
-            model.put("employees", employees);
-        }
+        List<Employee> employees = getEmployees();
+        model.put("employees", employees);
 
         model.put("user", userName);
         return "employees";
     }
 
-    @RequestMapping(value = "/add", method = RequestMethod.GET)
+    @GetMapping(value = "/add")
     public String add(Map<String, Object> model) {
 
         model.put("link", "add");
@@ -131,7 +112,7 @@ public class EmployeeController {
         return "employee";
     }
 
-    @RequestMapping(value = "/add", method = RequestMethod.POST)
+    @PostMapping(value = "/add")
     public String addEmployee(Map<String, Object> model, @RequestParam String code, @RequestParam String name,
                               @RequestParam String location, @RequestParam String email, @RequestParam String date) {
 
@@ -140,21 +121,13 @@ public class EmployeeController {
                         location + "/" + email + "/" + date,
                 String.class);
 
-        writeToFile();
-        try {
-            List<Employee> employees = mapper.readValue(jsonFile, List.class);
-            model.put("employees", employees);
-        }
-        catch (Exception e) {
-            List<Employee> employees = new ArrayList<>();
-            model.put("employees", employees);
-        }
-
+        List<Employee> employees = getEmployees();
+        model.put("employees", employees);
         model.put("user", userName);
         return "employees";
     }
 
-    @RequestMapping(value = "/edit/{employeeCode}", method = RequestMethod.GET)
+    @GetMapping(value = "/edit/{employeeCode}")
     public String edit(@PathVariable Integer employeeCode,  Map<String, Object> model) {
 
         ResponseEntity<String> response = restTemplate.getForEntity(
@@ -182,7 +155,7 @@ public class EmployeeController {
         return "employee";
     }
 
-    @RequestMapping(value = "/edit", method = RequestMethod.POST)
+    @PostMapping(value = "/edit")
     public String editEmployee(Map<String, Object> model, @RequestParam Integer code, @RequestParam String name,
                                @RequestParam String location, @RequestParam String email, @RequestParam String date) {
 
@@ -205,22 +178,18 @@ public class EmployeeController {
         return "employees";
     }
 
-    @RequestMapping(value = "/download", method = RequestMethod.GET)
-    public void download(Map<String, Object> model, HttpServletResponse response) throws IOException {
+    @GetMapping(value = "/download")
+    public void download(HttpServletResponse response) {
 
-        writeToFile();
+        List<Employee> employees = getEmployees();
+        employees = mapper.convertValue(
+                employees,
+                new TypeReference<List<Employee>>() { });
+
         try {
-            List<Employee> employeeList = mapper.readValue(jsonFile, List.class);
-
-            List<Employee> employees = mapper.convertValue(
-                    employeeList,
-                    new TypeReference<List<Employee>>() { });
-
             csvService.exportToCSV(response, employees);
-        }
-        catch (Exception e) {
-            List<Employee> employees = new ArrayList<>();
-            csvService.exportToCSV(response, employees);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
     }
