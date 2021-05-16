@@ -84,7 +84,7 @@ public class EmployeeController {
         List<Employee> employees = getEmployees();
         model.put("employees", employees);
         this.userName = userName;
-        model.put("user", userName);
+        model.put("user", this.userName);
 
         return "employees";
     }
