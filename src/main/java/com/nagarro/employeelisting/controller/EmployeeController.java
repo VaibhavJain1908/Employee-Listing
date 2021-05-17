@@ -35,24 +35,20 @@ public class EmployeeController {
     @Autowired
     private CsvService csvService;
 
-    public void writeToFile() {
+    public void writeToFile() throws IOException {
         ResponseEntity<String> response = restTemplate.getForEntity(
                 "http://localhost:9090/employees/",
                 String.class);
 
-        try {
-            FileWriter fw = new FileWriter(jsonFile);
-            fw.write(response.getBody());
-            fw.close();
-        }
-        catch (Exception e) {}
+        FileWriter fw = new FileWriter(jsonFile);
+        fw.write(response.getBody());
+        fw.close();
     }
 
     public List<Employee> getEmployees() {
 
-        writeToFile();
-
         try {
+            writeToFile();
             List<Employee> employees = mapper.readValue(jsonFile, List.class);
             return employees;
         }
@@ -164,33 +160,21 @@ public class EmployeeController {
                         location + "/" + email + "/" + date,
                 String.class);
 
-        writeToFile();
-        try {
-            List<Employee> employees = mapper.readValue(jsonFile, List.class);
-            model.put("employees", employees);
-        }
-        catch (Exception e) {
-            List<Employee> employees = new ArrayList<>();
-            model.put("employees", employees);
-        }
-
+        List<Employee> employees = getEmployees();
+        model.put("employees", employees);
         model.put("user", userName);
         return "employees";
     }
 
     @GetMapping(value = "/download")
-    public void download(HttpServletResponse response) {
+    public void download(HttpServletResponse response) throws IOException {
 
         List<Employee> employees = getEmployees();
         employees = mapper.convertValue(
                 employees,
                 new TypeReference<List<Employee>>() { });
 
-        try {
-            csvService.exportToCSV(response, employees);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        csvService.exportToCSV(response, employees);
 
     }
 }
