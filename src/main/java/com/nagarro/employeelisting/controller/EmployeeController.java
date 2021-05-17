@@ -120,6 +120,11 @@ public class EmployeeController {
         }
         catch (Exception e) {
             model.put("errorMessage", "Failed to Add!! Check All Fields Again");
+            model.put("code", code);
+            model.put("name", name);
+            model.put("location", location);
+            model.put("email", email);
+            model.put("date", date);
             model.put("link", "add");
             model.put("user", userName);
             model.put("button", "Add");
