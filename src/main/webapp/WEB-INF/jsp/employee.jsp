@@ -24,7 +24,9 @@
 
     <form action='/${link}' class='form' method="post">
 
-        <p class="field half"></p>
+        <p class="field half">
+            <label class="label" style="color:red; font-size:medium">${errorMessage}</label>
+        </p>
         <p class="field half">
             <label class="label">Welcome ${user} | <a href="/login" style="color:red; text-decoration: none">Log Out</a></label>
         </p>

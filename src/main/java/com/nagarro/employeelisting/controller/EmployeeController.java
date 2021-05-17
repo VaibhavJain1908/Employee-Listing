@@ -112,10 +112,19 @@ public class EmployeeController {
     public String addEmployee(Map<String, Object> model, @RequestParam String code, @RequestParam String name,
                               @RequestParam String location, @RequestParam String email, @RequestParam String date) {
 
-        restTemplate.getForEntity(
-                "http://localhost:9090/add/" + code + "/" + name + "/" +
-                        location + "/" + email + "/" + date,
-                String.class);
+        try {
+            restTemplate.getForEntity(
+                    "http://localhost:9090/add/" + code + "/" + name + "/" +
+                            location + "/" + email + "/" + date,
+                    String.class);
+        }
+        catch (Exception e) {
+            model.put("errorMessage", "Failed to Add!! Check All Fields Again");
+            model.put("link", "add");
+            model.put("user", userName);
+            model.put("button", "Add");
+            return "employee";
+        }
 
         List<Employee> employees = getEmployees();
         model.put("employees", employees);
@@ -124,26 +133,23 @@ public class EmployeeController {
     }
 
     @GetMapping(value = "/edit/{employeeCode}")
-    public String edit(@PathVariable Integer employeeCode,  Map<String, Object> model) {
+    public String edit(@PathVariable Integer employeeCode,  Map<String, Object> model) throws IOException {
 
         ResponseEntity<String> response = restTemplate.getForEntity(
                 "http://localhost:9090/employee/" + employeeCode,
                 String.class);
 
-        try {
-            FileWriter fw = new FileWriter(jsonFile);
-            fw.write(response.getBody());
-            fw.close();
-            Employee employee = mapper.readValue(jsonFile, Employee.class);
+        FileWriter fw = new FileWriter(jsonFile);
+        fw.write(response.getBody());
+        fw.close();
 
-            model.put("code", employeeCode);
-            model.put("name", employee.getName());
-            model.put("location", employee.getLocation());
-            model.put("email", employee.getEmail());
-            model.put("date", employee.getDateOfBirth());
-        }
-        catch (Exception e) {}
+        Employee employee = mapper.readValue(jsonFile, Employee.class);
 
+        model.put("code", employeeCode);
+        model.put("name", employee.getName());
+        model.put("location", employee.getLocation());
+        model.put("email", employee.getEmail());
+        model.put("date", employee.getDateOfBirth());
         model.put("link", "edit");
         model.put("user", userName);
         model.put("readOnly", "readonly");
@@ -155,10 +161,25 @@ public class EmployeeController {
     public String editEmployee(Map<String, Object> model, @RequestParam Integer code, @RequestParam String name,
                                @RequestParam String location, @RequestParam String email, @RequestParam String date) {
 
-        restTemplate.getForEntity(
-                "http://localhost:9090/edit/" + code + "/" + name + "/" +
-                        location + "/" + email + "/" + date,
-                String.class);
+        try {
+            restTemplate.getForEntity(
+                    "http://localhost:9090/edit/" + code + "/" + name + "/" +
+                            location + "/" + email + "/" + date,
+                    String.class);
+        }
+        catch (Exception e) {
+            model.put("errorMessage", "Failed to Edit!! Check All Fields Again");
+            model.put("code", code);
+            model.put("name", name);
+            model.put("location", location);
+            model.put("email", email);
+            model.put("date", date);
+            model.put("link", "edit");
+            model.put("user", userName);
+            model.put("readOnly", "readonly");
+            model.put("button", "Save");
+            return "employee";
+        }
 
         List<Employee> employees = getEmployees();
         model.put("employees", employees);
