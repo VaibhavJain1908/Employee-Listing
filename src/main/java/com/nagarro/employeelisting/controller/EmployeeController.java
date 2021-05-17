@@ -120,13 +120,8 @@ public class EmployeeController {
         }
         catch (Exception e) {
             model.put("errorMessage", "Failed to Add!! Check All Fields Again");
-            model.put("code", code);
-            model.put("name", name);
-            model.put("location", location);
-            model.put("email", email);
-            model.put("date", date);
+            put(model, Integer.parseInt(code), name, location, email, date);
             model.put("link", "add");
-            model.put("user", userName);
             model.put("button", "Add");
             return "employee";
         }
@@ -174,13 +169,8 @@ public class EmployeeController {
         }
         catch (Exception e) {
             model.put("errorMessage", "Failed to Edit!! Check All Fields Again");
-            model.put("code", code);
-            model.put("name", name);
-            model.put("location", location);
-            model.put("email", email);
-            model.put("date", date);
+            put(model, code, name, location, email, date);
             model.put("link", "edit");
-            model.put("user", userName);
             model.put("readOnly", "readonly");
             model.put("button", "Save");
             return "employee";
@@ -202,5 +192,14 @@ public class EmployeeController {
 
         csvService.exportToCSV(response, employees);
 
+    }
+
+    public void put(Map<String, Object> model, Integer code, String name, String location, String email, String date) {
+        model.put("code", code);
+        model.put("name", name);
+        model.put("location", location);
+        model.put("email", email);
+        model.put("date", date);
+        model.put("user", userName);
     }
 }
