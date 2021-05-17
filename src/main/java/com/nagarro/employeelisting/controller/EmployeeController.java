@@ -73,7 +73,7 @@ public class EmployeeController {
                             String.class);
         }
         catch (Exception e) {
-            model.put("errorMessage", e.getMessage());
+            model.put("errorMessage", "Invalid Credentials!!");
             return "login";
         }
 
